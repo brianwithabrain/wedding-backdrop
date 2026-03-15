@@ -22,9 +22,11 @@ const calculateOrbitalPosition = (
   semiMajorAxis: number,
   semiMinorAxis: number,
   rotation: number,
+  numOrbits: number = 1,
 ) => {
   const eccentricity = 0.6;
-  const M = progress * 2 * Math.PI;
+  // Multiply by numOrbits to complete multiple rotations
+  const M = progress * 2 * Math.PI * numOrbits;
 
   let E = M;
   for (let i = 0; i < 5; i++) {
@@ -69,6 +71,7 @@ const calculateBinaryStarPosition = (
   semiMajorAxis: number,
   semiMinorAxis: number,
   rotation: number,
+  numOrbits: number = 1,
 ) => {
   // Barycenter orbits the monogram
   const barycenter = calculateOrbitalPosition(
@@ -77,7 +80,8 @@ const calculateBinaryStarPosition = (
     centerY,
     semiMajorAxis,
     semiMinorAxis,
-    rotation
+    rotation,
+    numOrbits
   );
 
   // Star orbits the barycenter in a circular pattern
@@ -102,6 +106,10 @@ export const ShootingStar: React.FC = () => {
   const semiMinorAxis = 400;
   const orbitRotation = Math.PI * 0.15;
 
+  // Number of full orbits around the monogram in 30 seconds
+  // Increased from 1 to 2 for faster orbital movement
+  const orbitsAroundMonogram = 2;
+
   // Total duration for seamless loop - exactly matches video duration
   const orbitDuration = TOTAL_DURATION; // 900 frames = 30 seconds
 
@@ -117,11 +125,13 @@ export const ShootingStar: React.FC = () => {
   const mergeEndFrame = 700;     // When fully merged back to single star
 
   // Binary orbit radius - stars revolve around their barycenter
-  const binaryRadius = 60; // Distance from barycenter to each star
+  // Increased from 60 to 100 for more visible separation
+  const binaryRadius = 100; // Distance from barycenter to each star
 
   // Binary orbit speed - creates the helix effect
   // Use TOTAL_DURATION so binary angle is consistent at loop points
-  const binaryOrbitsPerMainOrbit = 3; // Complete 3 helix rotations
+  // Increased from 3 to 5 for more helix rotations (user requested 3-4)
+  const binaryOrbitsPerMainOrbit = 5; // Complete 5 helix rotations
   const binaryAngle = (frame % orbitDuration) * (2 * Math.PI * binaryOrbitsPerMainOrbit) / orbitDuration;
 
   // Star 2 opacity (spawning and merging) - use modulo for seamless loop
@@ -151,7 +161,8 @@ export const ShootingStar: React.FC = () => {
         centerY,
         semiMajorAxis,
         semiMinorAxis,
-        orbitRotation
+        orbitRotation,
+        orbitsAroundMonogram
       )
     : calculateOrbitalPosition(
         linearProgress,
@@ -159,7 +170,8 @@ export const ShootingStar: React.FC = () => {
         centerY,
         semiMajorAxis,
         semiMinorAxis,
-        orbitRotation
+        orbitRotation,
+        orbitsAroundMonogram
       );
 
   // Star 2 position - 180° out of phase (opposite side of barycenter)
@@ -171,7 +183,8 @@ export const ShootingStar: React.FC = () => {
     centerY,
     semiMajorAxis,
     semiMinorAxis,
-    orbitRotation
+    orbitRotation,
+    orbitsAroundMonogram
   );
 
   const { x: star1X, y: star1Y, z: zDepth1 } = star1Data;
@@ -205,7 +218,8 @@ export const ShootingStar: React.FC = () => {
         centerY,
         semiMajorAxis,
         semiMinorAxis,
-        orbitRotation
+        orbitRotation,
+        orbitsAroundMonogram
       )
     : calculateOrbitalPosition(
         nextProgress,
@@ -213,7 +227,8 @@ export const ShootingStar: React.FC = () => {
         centerY,
         semiMajorAxis,
         semiMinorAxis,
-        orbitRotation
+        orbitRotation,
+        orbitsAroundMonogram
       );
 
   const nextStar2Data = calculateBinaryStarPosition(
@@ -224,7 +239,8 @@ export const ShootingStar: React.FC = () => {
     centerY,
     semiMajorAxis,
     semiMinorAxis,
-    orbitRotation
+    orbitRotation,
+    orbitsAroundMonogram
   );
 
   const dx1 = nextStar1Data.x - star1X;
@@ -362,9 +378,10 @@ export const ShootingStar: React.FC = () => {
             centerY,
             semiMajorAxis,
             semiMinorAxis,
-            orbitRotation
+            orbitRotation,
+            orbitsAroundMonogram
           )
-        : calculateOrbitalPosition(spawnProgress, centerX, centerY, semiMajorAxis, semiMinorAxis, orbitRotation);
+        : calculateOrbitalPosition(spawnProgress, centerX, centerY, semiMajorAxis, semiMinorAxis, orbitRotation, orbitsAroundMonogram);
 
       const spawnScale = Math.max(0.3, 1.0 + spawnPos.z * 0.6);
 
@@ -408,7 +425,8 @@ export const ShootingStar: React.FC = () => {
         centerY,
         semiMajorAxis,
         semiMinorAxis,
-        orbitRotation
+        orbitRotation,
+        orbitsAroundMonogram
       );
 
       const spawnScale = Math.max(0.3, 1.0 + spawnPos.z * 0.6);
