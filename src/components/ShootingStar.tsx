@@ -1,6 +1,18 @@
-import React from 'react';
-import { AbsoluteFill, useCurrentFrame, interpolate, Easing } from 'remotion';
+import React, { useMemo } from 'react';
+import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 import { TOTAL_DURATION, COLORS, WIDTH, HEIGHT } from '../utils/constants';
+import { TrailParticle } from '../types';
+
+class SeededRandom {
+  private seed: number;
+  constructor(seed: number) {
+    this.seed = seed;
+  }
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    return this.seed / 233280;
+  }
+}
 
 // Orbital mechanics: Kepler's equation solution for elliptical orbit
 const calculateOrbitalPosition = (
@@ -95,7 +107,6 @@ export const ShootingStar: React.FC = () => {
   const orbitRotation = Math.PI * 0.15;
 
   // Number of full orbits around the monogram in 30 seconds
-  // Increased from 1 to 2 for faster orbital movement
   const orbitsAroundMonogram = 2;
 
   // Total duration for seamless loop - exactly matches video duration
@@ -106,23 +117,19 @@ export const ShootingStar: React.FC = () => {
   const linearProgress = (frame % orbitDuration) / orbitDuration;
 
   // Binary star system parameters - positioned for seamless loop
-  // Stars spawn and merge in the MIDDLE of the video, not near edges
-  const spawnStartFrame = 200;   // When star 2 begins spawning
-  const spawnEndFrame = 240;     // When star 2 is fully spawned
-  const mergeStartFrame = 660;   // When stars begin merging
-  const mergeEndFrame = 700;     // When fully merged back to single star
+  const spawnStartFrame = 200;
+  const spawnEndFrame = 240;
+  const mergeStartFrame = 660;
+  const mergeEndFrame = 700;
 
-  // Binary orbit radius - stars revolve around their barycenter
-  // Increased from 60 to 100 for more visible separation
-  const binaryRadius = 100; // Distance from barycenter to each star
+  // Binary orbit radius
+  const binaryRadius = 100;
 
-  // Binary orbit speed - creates the helix effect
-  // Use TOTAL_DURATION so binary angle is consistent at loop points
-  // Increased to 10 for many more helix rotations
-  const binaryOrbitsPerMainOrbit = 10; // Complete 10 helix rotations
+  // Binary orbit speed
+  const binaryOrbitsPerMainOrbit = 10;
   const binaryAngle = (frame % orbitDuration) * (2 * Math.PI * binaryOrbitsPerMainOrbit) / orbitDuration;
 
-  // Star 2 opacity (spawning and merging) - use modulo for seamless loop
+  // Star 2 opacity (spawning and merging)
   const loopedFrame = frame % orbitDuration;
   const star2Opacity = interpolate(
     loopedFrame,
@@ -131,7 +138,7 @@ export const ShootingStar: React.FC = () => {
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // Separation distance - starts at 0, grows to full, then shrinks back
+  // Separation distance
   const separationFactor = interpolate(
     loopedFrame,
     [spawnStartFrame, spawnEndFrame, mergeStartFrame, mergeEndFrame],
@@ -139,7 +146,7 @@ export const ShootingStar: React.FC = () => {
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // Star 1 position - either solo orbit or part of binary system
+  // Star 1 position
   const star1Data = loopedFrame >= spawnStartFrame && loopedFrame <= mergeEndFrame
     ? calculateBinaryStarPosition(
         linearProgress,
@@ -162,10 +169,10 @@ export const ShootingStar: React.FC = () => {
         orbitsAroundMonogram
       );
 
-  // Star 2 position - 180° out of phase (opposite side of barycenter)
+  // Star 2 position
   const star2Data = calculateBinaryStarPosition(
     linearProgress,
-    binaryAngle + Math.PI, // 180° phase offset
+    binaryAngle + Math.PI,
     binaryRadius * separationFactor,
     centerX,
     centerY,
@@ -185,32 +192,78 @@ export const ShootingStar: React.FC = () => {
   const baseScale2 = 1.0 + zDepth2 * 0.6;
   const star2Scale = Math.max(0.3, baseScale2);
 
-  // Calculate tail angles for both stars - using linear progression
-  const dt = 1 / orbitDuration; // One frame ahead
-  const nextProgress = (linearProgress + dt) % 1;
-  const nextBinaryAngle = nextProgress * (2 * Math.PI * binaryOrbitsPerMainOrbit);
-  const nextLoopedFrame = (loopedFrame + 1) % orbitDuration;
-  const nextSeparation = interpolate(
-    nextLoopedFrame,
-    [spawnStartFrame, spawnEndFrame, mergeStartFrame, mergeEndFrame],
-    [0, 1, 1, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  );
+  const glowPulse = 1 + 0.2 * Math.sin((frame * 0.5 * Math.PI) / 6);
 
-  const nextStar1Data = nextLoopedFrame >= spawnStartFrame && nextLoopedFrame <= mergeEndFrame
-    ? calculateBinaryStarPosition(
-        nextProgress,
-        nextBinaryAngle,
-        binaryRadius * nextSeparation,
-        centerX,
-        centerY,
-        semiMajorAxis,
-        semiMinorAxis,
-        orbitRotation,
-        orbitsAroundMonogram
-      )
-    : calculateOrbitalPosition(
-        nextProgress,
+  // Generate trail particles for star 1
+  const trailParticles1 = useMemo(() => {
+    const rng = new SeededRandom(123);
+    const particles: TrailParticle[] = [];
+    const spawnInterval = 3;
+    const total = Math.floor(orbitDuration / spawnInterval);
+
+    for (let i = 0; i < total; i++) {
+      const particleFrame = i * spawnInterval;
+      const spawnProgress = particleFrame / orbitDuration;
+
+      const pBinaryAngle = spawnProgress * (2 * Math.PI * binaryOrbitsPerMainOrbit);
+      const pSeparation = interpolate(
+        particleFrame,
+        [spawnStartFrame, spawnEndFrame, mergeStartFrame, mergeEndFrame],
+        [0, 1, 1, 0],
+        { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+      );
+
+      const spawnPos = particleFrame >= spawnStartFrame && particleFrame <= mergeEndFrame
+        ? calculateBinaryStarPosition(
+            spawnProgress,
+            pBinaryAngle,
+            binaryRadius * pSeparation,
+            centerX,
+            centerY,
+            semiMajorAxis,
+            semiMinorAxis,
+            orbitRotation,
+            orbitsAroundMonogram
+          )
+        : calculateOrbitalPosition(spawnProgress, centerX, centerY, semiMajorAxis, semiMinorAxis, orbitRotation, orbitsAroundMonogram);
+
+      const spawnScale = Math.max(0.3, 1.0 + spawnPos.z * 0.6);
+
+      particles.push({
+        id: i,
+        x: spawnPos.x,
+        y: spawnPos.y,
+        spawnFrame: particleFrame,
+        size: Math.max(1, (1.5 + rng.next() * 2.5) * spawnScale),
+        color: rng.next() > 0.5 ? COLORS.cyan : COLORS.tealGreen,
+      });
+    }
+    return particles;
+  }, []);
+
+  // Generate trail particles for star 2
+  const trailParticles2 = useMemo(() => {
+    const rng = new SeededRandom(456);
+    const particles: TrailParticle[] = [];
+    const spawnInterval = 3;
+    const total = Math.floor(orbitDuration / spawnInterval);
+
+    for (let i = 0; i < total; i++) {
+      const particleFrame = i * spawnInterval;
+      const spawnProgress = particleFrame / orbitDuration;
+
+      const pBinaryAngle = spawnProgress * (2 * Math.PI * binaryOrbitsPerMainOrbit);
+      const pSeparation = interpolate(
+        particleFrame,
+        [spawnStartFrame, spawnEndFrame, mergeStartFrame, mergeEndFrame],
+        [0, 1, 1, 0],
+        { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+      );
+
+      const spawnPos = calculateBinaryStarPosition(
+        spawnProgress,
+        pBinaryAngle + Math.PI,
+        binaryRadius * pSeparation,
         centerX,
         centerY,
         semiMajorAxis,
@@ -219,39 +272,69 @@ export const ShootingStar: React.FC = () => {
         orbitsAroundMonogram
       );
 
-  const nextStar2Data = calculateBinaryStarPosition(
-    nextProgress,
-    nextBinaryAngle + Math.PI,
-    binaryRadius * nextSeparation,
-    centerX,
-    centerY,
-    semiMajorAxis,
-    semiMinorAxis,
-    orbitRotation,
-    orbitsAroundMonogram
-  );
+      const spawnScale = Math.max(0.3, 1.0 + spawnPos.z * 0.6);
 
-  const dx1 = nextStar1Data.x - star1X;
-  const dy1 = nextStar1Data.y - star1Y;
-  const tailAngle1 = (Math.atan2(dy1, dx1) * 180) / Math.PI;
-  const tailLength1 = Math.max(60, 150 * star1Scale);
+      particles.push({
+        id: i + 1000,
+        x: spawnPos.x,
+        y: spawnPos.y,
+        spawnFrame: particleFrame,
+        size: Math.max(1, (1.5 + rng.next() * 2.5) * spawnScale),
+        color: rng.next() > 0.3 ? COLORS.tealGreen : COLORS.cyan,
+      });
+    }
+    return particles;
+  }, []);
 
-  const dx2 = nextStar2Data.x - star2X;
-  const dy2 = nextStar2Data.y - star2Y;
-  const tailAngle2 = (Math.atan2(dy2, dx2) * 180) / Math.PI;
-  const tailLength2 = Math.max(60, 150 * star2Scale);
+  // Helper function to render trail particles
+  const renderTrailParticles = (particles: TrailParticle[], baseOpacity: number = 1) => {
+    return particles.map((tp) => {
+      const age = frame - tp.spawnFrame;
+      let actualAge = age;
 
-  const glowPulse = 1 + 0.2 * Math.sin((frame * 0.5 * Math.PI) / 6);
+      if (age < 0) {
+        actualAge = age + orbitDuration;
+      }
 
-  // Helper function to render a single star
+      if (actualAge < 0 || actualAge > 40) return null;
+
+      const trailOpacity = interpolate(
+        actualAge,
+        [0, 3, 25, 40],
+        [0, 0.6, 0.2, 0],
+        { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+      ) * baseOpacity;
+
+      const driftX = Math.sin(actualAge * 0.1 + tp.id) * 3;
+      const driftY = actualAge * 0.5;
+
+      return (
+        <div
+          key={tp.id}
+          style={{
+            position: 'absolute',
+            left: tp.x + driftX - tp.size / 2,
+            top: tp.y + driftY - tp.size / 2,
+            width: tp.size,
+            height: tp.size,
+            borderRadius: '50%',
+            backgroundColor: tp.color,
+            opacity: trailOpacity,
+            boxShadow: `0 0 ${tp.size * 3}px ${tp.size}px ${tp.color}40`,
+            pointerEvents: 'none',
+          }}
+        />
+      );
+    });
+  };
+
+  // Helper function to render a single star (without tail)
   const renderStar = (
     starX: number,
     starY: number,
     starScale: number,
     zDepth: number,
     opacity: number,
-    tailAngle: number,
-    tailLength: number,
     starKey: string
   ) => {
     const coreSize = Math.max(4, 10 * starScale);
@@ -313,36 +396,23 @@ export const ShootingStar: React.FC = () => {
             zIndex: zDepth > 0 ? 12 : 3,
           }}
         />
-
-        {/* Tail streak */}
-        {starScale > 0.3 && (
-          <div
-            style={{
-              position: 'absolute',
-              left: starX,
-              top: starY - (1 * starScale),
-              width: tailLength,
-              height: Math.max(1, 2.5 * starScale),
-              background: `linear-gradient(to right, rgba(0, 212, 255, 0.6) 0%, rgba(0, 212, 255, 0.15) 50%, transparent 100%)`,
-              opacity: opacity * 0.6,
-              transform: `rotate(${tailAngle + 180}deg)`,
-              transformOrigin: '0% 50%',
-              pointerEvents: 'none',
-              zIndex: zDepth > 0 ? 9 : 0,
-            }}
-          />
-        )}
       </React.Fragment>
     );
   };
 
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      {/* Star 1 trail particles */}
+      {renderTrailParticles(trailParticles1, 1)}
+
+      {/* Star 2 trail particles */}
+      {star2Opacity > 0 && renderTrailParticles(trailParticles2, star2Opacity)}
+
       {/* Star 1 (always visible) */}
-      {renderStar(star1X, star1Y, star1Scale, zDepth1, 1, tailAngle1, tailLength1, 'star1')}
+      {renderStar(star1X, star1Y, star1Scale, zDepth1, 1, 'star1')}
 
       {/* Star 2 (spawns and merges) */}
-      {star2Opacity > 0 && renderStar(star2X, star2Y, star2Scale, zDepth2, star2Opacity, tailAngle2, tailLength2, 'star2')}
+      {star2Opacity > 0 && renderStar(star2X, star2Y, star2Scale, zDepth2, star2Opacity, 'star2')}
     </AbsoluteFill>
   );
 };
