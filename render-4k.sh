@@ -5,8 +5,14 @@
 # Navigate to project directory
 cd "$(dirname "$0")"
 
-# Render in 4K (3840x2160)
-npx remotion render WeddingBackdrop ./outputs/wedding-backdrop-4k.mp4 \
+# Ensure dependencies are installed (run once)
+if [ ! -d "node_modules" ]; then
+  echo "Installing dependencies..."
+  npm install
+fi
+
+# Render in 4K (3840x2160) using local remotion binary
+./node_modules/.bin/remotion render WeddingBackdrop ./outputs/wedding-backdrop-4k.mp4 \
   --width=3840 \
   --height=2160 \
   --crf=20 \
