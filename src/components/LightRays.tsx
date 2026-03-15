@@ -34,7 +34,7 @@ export const LightRays: React.FC = () => {
           top: -height * 0.1 + Math.sin(frame * 0.02) * 40,
           width: width * 1.8,
           height: height * 0.7,
-          background: 'linear-gradient(180deg, transparent 0%, rgba(0,255,150,0.06) 30%, rgba(0,200,255,0.08) 50%, rgba(0,255,150,0.05) 70%, transparent 100%)',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(0,255,150,0.15) 30%, rgba(0,200,255,0.20) 50%, rgba(0,255,150,0.12) 70%, transparent 100%)',
           opacity: (0.8 + 0.2 * Math.sin(frame * 0.03)),
           pointerEvents: 'none',
           mixBlendMode: 'screen',
@@ -66,8 +66,8 @@ export const LightRays: React.FC = () => {
               top: band.baseY + verticalWave - height * 0.6,
               width: width * 2,
               height: height * 0.8,
-              background: `linear-gradient(180deg, transparent 0%, ${band.colorStart}0.08 25%, ${band.colorMid}0.15 45%, ${band.colorMid}0.12 60%, transparent 100%)`,
-              opacity: pulse * band.opacity * 2.5,
+              background: `linear-gradient(180deg, transparent 0%, ${band.colorStart}0.20 25%, ${band.colorMid}0.35 45%, ${band.colorMid}0.25 60%, transparent 100%)`,
+              opacity: pulse * band.opacity * 5.0,
               pointerEvents: 'none',
               mixBlendMode: 'screen',
               filter: 'blur(20px)',
@@ -85,7 +85,7 @@ export const LightRays: React.FC = () => {
         const rippleY = height * 0.25 +
           Math.sin(frame * 0.025 + i * 1.2) * 50 +
           Math.sin(frame * 0.04 + i * 0.8) * 30;
-        const rippleOpacity = 0.06 * (1 - i / 4);
+        const rippleOpacity = 0.15 * (1 - i / 4);
 
         return (
           <div
@@ -114,7 +114,7 @@ export const LightRays: React.FC = () => {
           top: 0,
           width: '100%',
           height: '80%',
-          background: 'radial-gradient(ellipse 180% 70% at 50% 30%, rgba(0,255,180,0.08) 0%, rgba(0,220,255,0.05) 25%, transparent 50%)',
+          background: 'radial-gradient(ellipse 180% 70% at 50% 30%, rgba(0,255,180,0.20) 0%, rgba(0,220,255,0.12) 25%, transparent 50%)',
           pointerEvents: 'none',
           mixBlendMode: 'screen',
         }}
@@ -127,7 +127,7 @@ export const LightRays: React.FC = () => {
         const beamWave =
           Math.sin(frame * 0.02 + i * 1.2) * 40 +
           Math.sin(frame * 0.035 + i * 0.8) * 25;
-        const beamOpacity = 0.05 + 0.03 * Math.sin(frame * 0.05 + i * 2);
+        const beamOpacity = 0.12 + 0.06 * Math.sin(frame * 0.05 + i * 2);
 
         return (
           <div
