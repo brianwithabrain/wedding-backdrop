@@ -31,9 +31,9 @@ export const LightRays: React.FC = () => {
         style={{
           position: 'absolute',
           left: createWaveMotion(1.0, 0),
-          top: height * 0.1 + Math.sin(frame * 0.02) * 40,
+          top: -height * 0.1 + Math.sin(frame * 0.02) * 40,
           width: width * 1.8,
-          height: height * 0.5,
+          height: height * 0.7,
           background: 'linear-gradient(180deg, transparent 0%, rgba(0,255,150,0.06) 30%, rgba(0,200,255,0.08) 50%, rgba(0,255,150,0.05) 70%, transparent 100%)',
           opacity: (0.8 + 0.2 * Math.sin(frame * 0.03)),
           pointerEvents: 'none',
@@ -63,9 +63,9 @@ export const LightRays: React.FC = () => {
             style={{
               position: 'absolute',
               left: horizontalWave - width * 0.3,
-              top: band.baseY + verticalWave - height * 0.5,
+              top: band.baseY + verticalWave - height * 0.6,
               width: width * 2,
-              height: height * 0.6,
+              height: height * 0.8,
               background: `linear-gradient(180deg, transparent 0%, ${band.colorStart}0.08 25%, ${band.colorMid}0.15 45%, ${band.colorMid}0.12 60%, transparent 100%)`,
               opacity: pulse * band.opacity * 2.5,
               pointerEvents: 'none',
@@ -113,7 +113,7 @@ export const LightRays: React.FC = () => {
           left: 0,
           top: 0,
           width: '100%',
-          height: '55%',
+          height: '80%',
           background: 'radial-gradient(ellipse 180% 70% at 50% 30%, rgba(0,255,180,0.08) 0%, rgba(0,220,255,0.05) 25%, transparent 50%)',
           pointerEvents: 'none',
           mixBlendMode: 'screen',
@@ -135,9 +135,9 @@ export const LightRays: React.FC = () => {
             style={{
               position: 'absolute',
               left: beamX + beamWave,
-              top: height * 0.08,
+              top: -height * 0.05,
               width: 50 + i * 15,
-              height: height * 0.45,
+              height: height * 0.65,
               background: `linear-gradient(180deg, transparent 0%, rgba(0,255,180,${beamOpacity}) 20%, rgba(0,220,255,${beamOpacity * 1.2}) 40%, transparent 100%)`,
               pointerEvents: 'none',
               mixBlendMode: 'screen',
@@ -148,20 +148,6 @@ export const LightRays: React.FC = () => {
         );
       })}
 
-      {/* Layer 6: Bottom reflection */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: '48%',
-          width: '100%',
-          height: '25%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(0,200,255,0.04) 50%, rgba(0,255,180,0.02) 100%)',
-          opacity: 0.6 + 0.3 * Math.sin(frame * 0.03),
-          pointerEvents: 'none',
-          mixBlendMode: 'screen',
-        }}
-      />
     </AbsoluteFill>
   );
 };
