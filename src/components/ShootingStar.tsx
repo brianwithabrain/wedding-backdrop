@@ -130,8 +130,8 @@ export const ShootingStar: React.FC = () => {
 
   // Binary orbit speed - creates the helix effect
   // Use TOTAL_DURATION so binary angle is consistent at loop points
-  // Increased from 3 to 5 for more helix rotations (user requested 3-4)
-  const binaryOrbitsPerMainOrbit = 5; // Complete 5 helix rotations
+  // Increased to 10 for many more helix rotations
+  const binaryOrbitsPerMainOrbit = 10; // Complete 10 helix rotations
   const binaryAngle = (frame % orbitDuration) * (2 * Math.PI * binaryOrbitsPerMainOrbit) / orbitDuration;
 
   // Star 2 opacity (spawning and merging) - use modulo for seamless loop
