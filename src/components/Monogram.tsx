@@ -1,16 +1,11 @@
 import React, { useMemo } from 'react';
-import {
-  AbsoluteFill,
-  useCurrentFrame,
-  useVideoConfig,
-  interpolate,
-} from 'remotion';
-import { loadFont as loadPinyon } from '@remotion/google-fonts/PinyonScript';
-import { loadFont as loadCormorant } from '@remotion/google-fonts/CormorantGaramond';
+import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { generateCosmicDust } from '../utils/particleGenerator';
 
-const { fontFamily: scriptFont } = loadPinyon();
-const { fontFamily: serifFont } = loadCormorant();
+const MONOGRAM_ASSET = staticFile('monogram-vector.svg');
+const MONOGRAM_WIDTH = 743;
+const MONOGRAM_HEIGHT = 640;
+const HELVETICA_LT_PRO = '"Helvetica LT Pro", ".Helvetica LT MM", "Helvetica LT Std", Helvetica, "Helvetica Neue", Arial, sans-serif';
 
 export const Monogram: React.FC = () => {
   const frame = useCurrentFrame();
@@ -19,37 +14,14 @@ export const Monogram: React.FC = () => {
   // Generate cosmic dust particles around the monogram
   const cosmicDust = useMemo(() => generateCosmicDust(80, width, height), [width, height]);
 
-  // No fade - always visible
-  const globalOpacity = 1;
-  const initialsOpacity = 1;
-  const namesOpacity = 1;
-  const dateOpacity = 1;
-
-  // Enhanced scale pulse - monogram breathes more noticeably
-  const scalePulse = 1 + 0.08 * Math.sin(((frame * 0.08) * Math.PI) / 180);
-  const yOffset = 0;
-
-  // Glow pulse on the text shadow
-  const glowIntensity =
-    0.8 + 0.3 * Math.sin(((frame * 0.06 + 45) * Math.PI) / 180);
-
-  const textShadow = `
-    0 0 10px rgba(0, 212, 255, ${0.4 * glowIntensity}),
-    0 0 25px rgba(0, 212, 255, ${0.25 * glowIntensity}),
-    0 0 50px rgba(0, 212, 255, ${0.15 * glowIntensity}),
-    0 0 80px rgba(0, 180, 220, ${0.08 * glowIntensity})
-  `;
-
-  const subtleShadow = `
-    0 0 8px rgba(0, 212, 255, ${0.3 * glowIntensity}),
-    0 0 20px rgba(0, 212, 255, ${0.15 * glowIntensity})
-  `;
+  const fillPulse = 0.94 + 0.06 * Math.sin(((frame * 0.08 + 12) * Math.PI) / 180);
+  const glowPulse = 0.82 + 0.18 * Math.sin(((frame * 0.06 + 45) * Math.PI) / 180);
+  const monogramWidth = width * 0.405;
+  const monogramHeight = (monogramWidth * MONOGRAM_HEIGHT) / MONOGRAM_WIDTH;
 
   return (
     <AbsoluteFill
       style={{
-        opacity: globalOpacity,
-        transform: `translateY(${yOffset}px) scale(${scalePulse})`,
         pointerEvents: 'none',
       }}
     >
@@ -86,124 +58,179 @@ export const Monogram: React.FC = () => {
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          width: monogramWidth,
+          height: monogramHeight,
         }}
       >
-        {/* Monogram initials container - matching reference layout */}
-        <div
+        <svg
+          viewBox={`0 0 ${MONOGRAM_WIDTH} ${MONOGRAM_HEIGHT}`}
+          aria-label="Wedding monogram"
           style={{
-            position: 'relative',
-            width: 500,
-            height: 460,
-            opacity: initialsOpacity,
+            width: '100%',
+            height: '100%',
+            opacity: 1,
+            overflow: 'visible',
+            display: 'block',
           }}
         >
-          {/* Y - upper left, large calligraphic */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 40,
-              top: -30,
-              fontFamily: scriptFont,
-              fontSize: 320,
-              color: '#FFFFFF',
-              textShadow,
-              lineHeight: 1,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Y
-          </div>
-
-          {/* D - lower right, overlapping with Y */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 130,
-              top: 130,
-              fontFamily: scriptFont,
-              fontSize: 320,
-              color: '#FFFFFF',
-              textShadow,
-              lineHeight: 1,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            D
-          </div>
-
-          {/* YONGHAO & DAWN - positioned to the right, avoiding D overlap */}
-          <div
-            style={{
-              position: 'absolute',
-              right: -80,
-              top: 50,
-              opacity: namesOpacity,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: 2,
-            }}
-          >
-            <div
-              style={{
-                fontFamily: serifFont,
-                fontSize: 28,
-                color: '#FFFFFF',
-                textShadow: subtleShadow,
-                letterSpacing: '0.2em',
-                fontWeight: 500,
-              }}
+          <defs>
+            <mask
+              id="monogram-mask"
+              x="0"
+              y="0"
+              width={MONOGRAM_WIDTH}
+              height={MONOGRAM_HEIGHT}
+              maskUnits="userSpaceOnUse"
+              style={{maskType: 'alpha'}}
             >
-              YONGHAO
-            </div>
-            <div
-              style={{
-                fontFamily: serifFont,
-                fontSize: 28,
-                color: '#FFFFFF',
-                textShadow: subtleShadow,
-                letterSpacing: '0.2em',
-                fontWeight: 500,
-                paddingLeft: 30,
-              }}
-            >
-              &amp;
-            </div>
-            <div
-              style={{
-                fontFamily: serifFont,
-                fontSize: 28,
-                color: '#FFFFFF',
-                textShadow: subtleShadow,
-                letterSpacing: '0.2em',
-                fontWeight: 500,
-                paddingLeft: 60,
-              }}
-            >
-              DAWN
-            </div>
-          </div>
+              <image
+                href={MONOGRAM_ASSET}
+                x="0"
+                y="0"
+                width={MONOGRAM_WIDTH}
+                height={MONOGRAM_HEIGHT}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </mask>
 
-          {/* 21.03.2026 - bottom left */}
-          <div
-            style={{
-              position: 'absolute',
-              left: -20,
-              bottom: 10,
-              opacity: dateOpacity,
-              fontFamily: serifFont,
-              fontSize: 26,
-              color: '#FFFFFF',
-              textShadow: subtleShadow,
-              letterSpacing: '0.15em',
-              fontWeight: 400,
-            }}
-          >
-            21.03.2026
-          </div>
+            <filter
+              id="monogram-glow"
+              x="-40%"
+              y="-40%"
+              width="180%"
+              height="180%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feDropShadow
+                dx="0"
+                dy="0"
+                stdDeviation="2.5"
+                floodColor="#ffffff"
+                floodOpacity={0.24 + (0.18 * glowPulse)}
+              />
+              <feDropShadow
+                dx="0"
+                dy="0"
+                stdDeviation="7"
+                floodColor="#dff8ff"
+                floodOpacity={0.10 + (0.12 * glowPulse)}
+              />
+              <feDropShadow
+                dx="0"
+                dy="0"
+                stdDeviation="14"
+                floodColor="#7fe7ff"
+                floodOpacity={0.11 + (0.18 * glowPulse)}
+              />
+              <feDropShadow
+                dx="0"
+                dy="0"
+                stdDeviation="26"
+                floodColor="#00d4ff"
+                floodOpacity={0.08 + (0.14 * glowPulse)}
+              />
+              <feDropShadow
+                dx="0"
+                dy="0"
+                stdDeviation="44"
+                floodColor="#1496ff"
+                floodOpacity={0.04 + (0.09 * glowPulse)}
+              />
+            </filter>
+
+          </defs>
+
+          <rect
+            x="0"
+            y="0"
+            width={MONOGRAM_WIDTH}
+            height={MONOGRAM_HEIGHT}
+            fill="#ffffff"
+            opacity={fillPulse}
+            mask="url(#monogram-mask)"
+            filter="url(#monogram-glow)"
+          />
+        </svg>
+
+        <div
+          style={{
+            position: 'absolute',
+            left: (39 / MONOGRAM_WIDTH) * monogramWidth,
+            top: (429 / MONOGRAM_HEIGHT) * monogramHeight,
+            color: '#ffffff',
+            fontFamily: HELVETICA_LT_PRO,
+            fontSize: (37 / MONOGRAM_WIDTH) * monogramWidth,
+            fontWeight: 700,
+            letterSpacing: '0.11em',
+            lineHeight: 1,
+            whiteSpace: 'nowrap',
+            WebkitFontSmoothing: 'antialiased',
+            textRendering: 'geometricPrecision',
+          }}
+        >
+          21.03.2026
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            left: (519 / MONOGRAM_WIDTH) * monogramWidth,
+            top: (133 / MONOGRAM_HEIGHT) * monogramHeight,
+            width: (181 / MONOGRAM_WIDTH) * monogramWidth,
+            color: '#ffffff',
+            fontFamily: HELVETICA_LT_PRO,
+            fontSize: (31 / MONOGRAM_WIDTH) * monogramWidth,
+            fontWeight: 700,
+            letterSpacing: '0.145em',
+            lineHeight: 1,
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            WebkitFontSmoothing: 'antialiased',
+            textRendering: 'geometricPrecision',
+          }}
+        >
+          YONGHAO
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            left: (596 / MONOGRAM_WIDTH) * monogramWidth,
+            top: (167 / MONOGRAM_HEIGHT) * monogramHeight,
+            width: (38 / MONOGRAM_WIDTH) * monogramWidth,
+            color: '#ffffff',
+            fontFamily: HELVETICA_LT_PRO,
+            fontSize: (28 / MONOGRAM_WIDTH) * monogramWidth,
+            fontWeight: 700,
+            lineHeight: 1,
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            WebkitFontSmoothing: 'antialiased',
+            textRendering: 'geometricPrecision',
+          }}
+        >
+          &
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            left: (570 / MONOGRAM_WIDTH) * monogramWidth,
+            top: (201 / MONOGRAM_HEIGHT) * monogramHeight,
+            width: (105 / MONOGRAM_WIDTH) * monogramWidth,
+            color: '#ffffff',
+            fontFamily: HELVETICA_LT_PRO,
+            fontSize: (31 / MONOGRAM_WIDTH) * monogramWidth,
+            fontWeight: 700,
+            letterSpacing: '0.145em',
+            lineHeight: 1,
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            WebkitFontSmoothing: 'antialiased',
+            textRendering: 'geometricPrecision',
+          }}
+        >
+          DAWN
         </div>
       </div>
     </AbsoluteFill>
